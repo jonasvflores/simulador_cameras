@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Âncora Sistemas — Simulador de Rede</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0b1220;color:#e2e8f0;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{background:#0d1e38;border-bottom:1px solid #1a3356;padding:9px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;background:#152e58;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand-name{font-size:15px;font-weight:700;color:#e8f0fe;letter-spacing:.3px}
+.brand-sub{font-size:10px;color:#4a78b5;letter-spacing:.8px;margin-top:1px}
+.hright{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:#3a6ea8}
+.dot{width:7px;height:7px;border-radius:50%;animation:pulse 2s infinite;flex-shrink:0}
+.dot.green{background:#27ae60}.dot.red{background:#e74c3c}.dot.amber{background:#e6a817}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.err-badge{background:#3d0f0f;color:#f08080;border:1px solid #6a2020;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s}
+.err-badge:hover{background:#4d1515}
+.err-badge.ok{background:#0f2a1a;color:#4cbb7c;border-color:#1a5030}
+.layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:295px;background:#0d1e38;border-right:1px solid #1a3356;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.tabs{display:flex;border-bottom:1px solid #1a3356}
+.tab{flex:1;padding:8px 0;font-size:11px;font-weight:700;text-align:center;cursor:pointer;color:#3a6090;border-bottom:2px solid transparent;transition:all .15s;letter-spacing:.3px}
+.tab.active{color:#5b8dd9;border-bottom:2px solid #3a7bd5;background:#0f2245}
+.tab .tbadge{background:#5c1c1c;color:#f08080;border-radius:3px;padding:0 4px;font-size:10px;margin-left:3px;display:inline-block}
+.tab .tbadge.ok{background:#0a2a18;color:#4cbb7c}
+.sbody{flex:1;overflow-y:auto;padding:12px}
+.sbody::-webkit-scrollbar{width:3px}
+.sbody::-webkit-scrollbar-thumb{background:#1a3356;border-radius:2px}
+.slabel{font-size:10px;font-weight:700;color:#2a5a8a;text-transform:uppercase;letter-spacing:.9px;margin:10px 0 6px}
+.fg{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.fg label{font-size:11px;color:#5a7ea8;font-weight:600}
+select,input[type=text]{font-size:12px;padding:6px 9px;border:1px solid #1a3356;border-radius:5px;background:#080f1e;color:#c8d8f0;outline:none;width:100%}
+select:focus,input:focus{border-color:#3a7bd5}
+.ip-badge{font-size:12px;color:#4a9bd5;background:#060e1a;border:1px solid #1a3060;border-radius:4px;padding:5px 9px;font-family:monospace;margin-bottom:3px}
+.btn{font-size:12px;padding:7px 12px;border-radius:5px;border:none;cursor:pointer;font-weight:600;transition:all .15s;width:100%}
+.btn-blue{background:#163a80;color:#c8dcff}.btn-blue:hover{background:#1e4a9a}
+.btn-gray{background:#0f1e38;color:#5a7eaa;border:1px solid #1a3356}.btn-gray:hover{background:#152840}
+.btn-red{background:#2a0a0a;color:#f08080;border:1px solid #4a1818}.btn-red:hover{background:#3a0f0f}
+.btn-green{background:#0a2018;color:#4cbb7c;border:1px solid #1a4a30}.btn-green:hover{background:#102a20}
+.btn-amber{background:#1e1400;color:#e6c040;border:1px solid #3a2a00}.btn-amber:hover{background:#2a1c00}
+.btn-sm{font-size:11px;padding:4px 8px;width:auto;border-radius:4px}
+.dcard{background:#060e1a;border:1px solid #1a3356;border-radius:6px;padding:7px 9px;margin-bottom:5px;cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:7px}
+.dcard:hover{border-color:#2a5090;background:#0a1628}
+.dcard.sel{border-color:#3a7bd5;background:#0a1e42}
+.dcard.psrc{border-color:#e6a817;background:#120e00}
+.dcard.pdst{border-color:#27ae60;background:#00120a}
+.dcard.err{border-color:#cc3333;background:#140606}
+.dcard.warn{border-color:#cc8800;background:#130c00}
+.di{width:28px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.dn{font-size:11px;font-weight:700;color:#c8d8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dip{font-size:10px;color:#3a6a9a;font-family:monospace}
+.dbadge{font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:3px;vertical-align:middle}
+.n1{background:#071830;color:#3a7ad5}.n2{background:#071e10;color:#259a52}.n3{background:#1a1200;color:#9a7820}
+.ddel{color:#2a2a2a;font-size:12px;cursor:pointer;padding:1px 5px;border-radius:3px;flex-shrink:0;margin-left:auto}
+.ddel:hover{color:#cc3333;background:#1a0505}
+.ecard{border-radius:6px;padding:8px 10px;margin-bottom:5px;font-size:11px;line-height:1.5;border-left:3px solid}
+.ecard.ecrit{background:#140808;border-color:#cc3333;color:#f08080}
+.ecard.ewarn{background:#130c00;border-color:#cc8800;color:#e6c040}
+.ecard.einfo{background:#060e1a;border-color:#2a5a9f;color:#7ba8d5}
+.ecard.eok{background:#060f0a;border-color:#1a7a40;color:#4cbb7c}
+.etitle{font-weight:700;margin-bottom:2px}
+.canvas-wrap{flex:1;position:relative;overflow:hidden;background:#080f1c;background-image:radial-gradient(circle,#111e30 1px,transparent 1px);background-size:28px 28px}
+canvas{position:absolute;top:0;left:0;width:100%;height:100%;cursor:default}
+.legend{position:absolute;bottom:12px;right:12px;background:rgba(6,14,26,.96);border:1px solid #1a3356;border-radius:7px;padding:9px 12px;font-size:10px;color:#4a6a8a;display:flex;flex-direction:column;gap:4px}
+.ltitle{font-size:9px;font-weight:700;color:#2a5080;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
+.li{display:flex;align-items:center;gap:6px}
+.ldot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.lln{width:20px;height:0;flex-shrink:0}
+.toast{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#0a1628;border:1px solid #1a3356;border-radius:5px;padding:6px 14px;font-size:11px;color:#5b9bd5;white-space:nowrap;opacity:0;transition:opacity .3s;pointer-events:none;z-index:20}
+.tip{position:absolute;background:#060e1a;border:1px solid #2050a0;border-radius:6px;padding:7px 10px;font-size:11px;color:#a0c0e0;pointer-events:none;display:none;min-width:190px;z-index:15}
+.tr{display:flex;justify-content:space-between;gap:10px;margin-bottom:2px}
+.tk{color:#3a6090;font-size:10px}.tv{color:#c8d8f0;font-family:monospace;font-size:10px}
+.term{background:#040c18;border:1px solid #1a3356;border-radius:5px;padding:9px 11px;font-family:'Courier New',monospace;font-size:11px;color:#4cbb7c;min-height:130px;max-height:240px;overflow-y:auto;margin-top:6px}
+.term::-webkit-scrollbar{width:3px}
+.term::-webkit-scrollbar-thumb{background:#1a3356}
+.tl{margin-bottom:1px;line-height:1.5}
+.tc{color:#5a8ac8}.to{color:#4cbb7c}.tf{color:#f08080}.tw{color:#e6a817}.ts{color:#8ab0d0}
+.ehint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.ehint-icon{font-size:44px;opacity:.12}
+.ehint-txt{font-size:12px;color:#1a3356;margin-top:8px}
+.conn-line-pulse{animation:connpulse 1.5s infinite}
+@keyframes connpulse{0%,100%{opacity:.5}50%{opacity:1}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M9 1 L9 17 M9 9 L2 5.5 M9 9 L16 5.5" stroke="#5b8dd9" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="9" cy="17" r="2" fill="#3a7bd5"/>
+        <circle cx="2" cy="5.5" r="1.8" fill="#4a7ab5"/>
+        <circle cx="16" cy="5.5" r="1.8" fill="#4a7ab5"/>
+        <circle cx="9" cy="1" r="1.8" fill="#7aa8e0"/>
+      </svg>
+    </div>
+    <div><div class="brand-name">Âncora Sistemas</div><div class="brand-sub">SIMULADOR DE REDE</div></div>
+  </div>
+  <div class="hright">
+    <div class="dot green" id="statusDot"></div>
+    <span id="statusTxt">Sistema OK</span>
+    <span style="color:#1a3356;margin:0 4px">|</span>
+    <span id="devCount">0 dispositivos</span>
+    <span style="color:#1a3356;margin:0 4px">|</span>
+    <span id="errBadge" class="err-badge ok" onclick="showTab('erros')">✓ Sem erros</span>
+    <span style="color:#1a3356;margin:0 4px">|</span>
+    <span style="color:#2a5080">@jonasvflores</span>
+  </div>
+</header>
+
+<div class="layout">
+<div class="sidebar">
+  <div class="tabs">
+    <div class="tab active" id="tab-add" onclick="showTab('add')">➕ Adicionar</div>
+    <div class="tab" id="tab-rede" onclick="showTab('rede')">🖧 Rede</div>
+    <div class="tab" id="tab-ping" onclick="showTab('ping')">📡 Ping</div>
+    <div class="tab" id="tab-erros" onclick="showTab('erros')">⚠ Erros <span class="tbadge ok" id="tabErrBadge">0</span></div>
+  </div>
+
+  <div class="sbody" id="panel-add">
+    <div class="slabel">Novo dispositivo</div>
+    <div class="fg"><label>Tipo</label>
+      <select id="devType" onchange="updateHint()">
+        <option value="camera">📷 Câmera IP</option>
+        <option value="dvr">🖥️ DVR / NVR (central)</option>
+        <option value="nvr">📼 NVR (central)</option>
+        <option value="switch">🔀 Switch PoE</option>
+        <option value="router">🌐 Roteador / Firewall</option>
+        <option value="access">🚪 Controladora de Acesso</option>
+        <option value="biometric">👆 Leitor Biométrico</option>
+        <option value="pc">💻 Computador</option>
+        <option value="server">🗄️ Servidor</option>
+        <option value="printer">🖨️ Impressora</option>
+      </select>
+    </div>
+    <div class="fg"><label>Nome</label>
+      <input type="text" id="devName" placeholder="Ex: CAM-01, DVR-LOJA, SW-01"/>
+    </div>
+    <div class="fg"><label>Rede</label>
+      <select id="devNet" onchange="updateHint()">
+        <option value="1">Rede 1 — 192.168.1.x</option>
+        <option value="2">Rede 2 — 192.168.2.x</option>
+        <option value="3">Rede 3 — 10.0.0.x</option>
+      </select>
+    </div>
+    <div class="fg"><label>Host (último octeto: 1–254)</label>
+      <input type="text" id="devHost" placeholder="Ex: 10" oninput="updateHint()"/>
+    </div>
+    <div class="ip-badge" id="ipBadge">IP: 192.168.1.___</div>
+    <div class="fg"><label>Porta principal (opcional)</label>
+      <input type="text" id="devPort" placeholder="Ex: 80, 554, 8080"/>
+    </div>
+    <button class="btn btn-blue" onclick="addDevice()" style="margin-bottom:8px">+ Adicionar à rede</button>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-gray btn-sm" style="flex:1" onclick="preloadExample()">▶ Exemplo</button>
+      <button class="btn btn-red btn-sm" style="flex:1" onclick="clearAll()">🗑 Limpar</button>
+    </div>
+    <div class="slabel" style="margin-top:14px">Referência rápida</div>
+    <div style="font-size:10px;color:#3a5a7a;line-height:1.6;display:flex;flex-direction:column;gap:4px">
+      <div style="background:#06101e;border-radius:4px;padding:5px 7px;border-left:2px solid #3a7bd5"><b style="color:#4a8ad5">DVR/NVR</b> — central que gerencia câmeras. Deve estar na mesma rede das câmeras (mesma sub-rede).</div>
+      <div style="background:#06101e;border-radius:4px;padding:5px 7px;border-left:2px solid #27ae60"><b style="color:#3aaa60">IP Estático</b> — câmeras, DVR, NVR e controladoras nunca usam DHCP — IP fixo obrigatório.</div>
+      <div style="background:#06101e;border-radius:4px;padding:5px 7px;border-left:2px solid #e6a817"><b style="color:#c09020">Ping 554</b> — RTSP de câmera. Ping no IP verifica rede; porta 554 verifica stream de vídeo.</div>
+      <div style="background:#06101e;border-radius:4px;padding:5px 7px;border-left:2px solid #cc4444"><b style="color:#cc6060">Conflito IP</b> — dois dispositivos com mesmo IP causam falha total de comunicação.</div>
+    </div>
+  </div>
+
+  <div class="sbody" id="panel-rede" style="display:none">
+    <div class="slabel">Dispositivos</div>
+    <div id="deviceList"><div style="font-size:11px;color:#1a3356;text-align:center;padding:14px 0">Nenhum dispositivo cadastrado.</div></div>
+  </div>
+
+  <div class="sbody" id="panel-ping" style="display:none">
+    <div class="slabel">Ping entre dispositivos</div>
+    <div style="font-size:10px;color:#2a4a6a;margin-bottom:8px;line-height:1.5">O simulador verifica se estão na mesma rede, se o DVR enxerga as câmeras, e gera resultado realista com latência e TTL.</div>
+    <div class="fg"><label>🟡 Origem</label><select id="pingSrc"></select></div>
+    <div class="fg"><label>🟢 Destino</label><select id="pingDst"></select></div>
+    <button class="btn btn-green" onclick="runPing()" style="margin-bottom:5px">▶ Executar ping</button>
+    <button class="btn btn-gray" onclick="clearTerm()">Limpar terminal</button>
+    <div class="term" id="term">
+      <div class="tl tw">Âncora Sistemas — Simulador de Rede de Segurança</div>
+      <div class="tl tw">@jonasvflores — terminal pronto.</div>
+      <div class="tl" style="color:#1a3356">────────────────────────────────</div>
+    </div>
+    <div class="slabel" style="margin-top:10px">Portas de referência</div>
+    <div style="font-size:10px;color:#2a4a6a;display:grid;grid-template-columns:1fr 1fr;gap:3px">
+      <span>80 — HTTP</span><span>443 — HTTPS</span>
+      <span>554 — RTSP câmera</span><span>8000 — SDK câmera</span>
+      <span>8080 — HTTP alt</span><span>9000 — Ctrl. acesso</span>
+      <span>9100 — Impressora</span><span>3306 — MySQL</span>
+      <span>22 — SSH</span><span>23 — Telnet</span>
+    </div>
+  </div>
+
+  <div class="sbody" id="panel-erros" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div class="slabel" style="margin:0">Diagnóstico de rede</div>
+      <button class="btn btn-amber btn-sm" onclick="runDiag()">🔍 Verificar</button>
+    </div>
+    <div id="diagList"><div style="font-size:11px;color:#1a3356;text-align:center;padding:14px 0">Clique em "Verificar" para analisar a topologia.</div></div>
+  </div>
+</div>
+
+<div class="canvas-wrap" id="cw">
+  <canvas id="net"></canvas>
+  <div class="ehint" id="ehint"><div class="ehint-icon">🔒</div><div class="ehint-txt">Adicione dispositivos ou carregue o exemplo de segurança</div></div>
+  <div class="legend">
+    <div class="ltitle">Legenda</div>
+    <div class="li"><div class="ldot" style="background:#3a7bd5"></div> Câmera IP</div>
+    <div class="li"><div class="ldot" style="background:#8e44ad"></div> DVR / NVR</div>
+    <div class="li"><div class="ldot" style="background:#27ae60"></div> Ctrl. Acesso / Bio</div>
+    <div class="li"><div class="ldot" style="background:#e67e22"></div> Switch / Roteador</div>
+    <div class="li"><div class="ldot" style="background:#2980b9"></div> PC / Servidor</div>
+    <div class="li"><div class="ldot" style="background:#cc3333"></div> Erro crítico</div>
+    <div style="border-top:1px solid #1a3356;margin:3px 0"></div>
+    <div class="li"><div class="lln" style="border-top:1.5px solid #2a5090"></div> Mesma rede</div>
+    <div class="li"><div class="lln" style="border-top:1.5px dashed #883333"></div> Redes diferentes</div>
+    <div class="li"><div class="lln" style="border-top:2px solid #8e44ad"></div> DVR → Câmera</div>
+    <div class="li"><div class="lln" style="border-top:2px solid #27ae60"></div> Ctrl → Leitor</div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="tip" id="tip"></div>
+</div>
+</div>
+
+<script>
+const devices=[];
+let selId=null,pSrc=null,pDst=null,drag=null,pingAnim=null,pingPkts=[];
+const TC={
+  camera:   {label:'Câmera IP',      color:'#3a7bd5',icon:'📷',ports:'80,554,8080',isCamera:true},
+  dvr:      {label:'DVR',            color:'#8e44ad',icon:'🖥️', ports:'80,8000,554',isCentral:true},
+  nvr:      {label:'NVR',            color:'#8e44ad',icon:'📼', ports:'80,8000,554',isCentral:true},
+  switch:   {label:'Switch PoE',     color:'#e67e22',icon:'🔀',ports:'—',isSwitch:true},
+  router:   {label:'Roteador',       color:'#d35400',icon:'🌐',ports:'80,443',isRouter:true},
+  access:   {label:'Ctrl.Acesso',    color:'#27ae60',icon:'🚪',ports:'9000,80',isAccess:true},
+  biometric:{label:'Leitor Biom.',   color:'#1abc9c',icon:'👆',ports:'9000',isBio:true},
+  pc:       {label:'Computador',     color:'#2980b9',icon:'💻',ports:'dinâmico'},
+  server:   {label:'Servidor',       color:'#2471a3',icon:'🗄️', ports:'80,443,3306'},
+  printer:  {label:'Impressora',     color:'#5d6d7e',icon:'🖨️', ports:'9100,631'},
+};
+const NC={
+  '1':{prefix:'192.168.1',mask:'255.255.255.0',gw:'192.168.1.1',name:'Rede 1'},
+  '2':{prefix:'192.168.2',mask:'255.255.255.0',gw:'192.168.2.1',name:'Rede 2'},
+  '3':{prefix:'10.0.0',   mask:'255.255.255.0',gw:'10.0.0.1',   name:'Rede 3'},
+};
+const NETFILL={'1':'rgba(30,70,160,.1)','2':'rgba(20,110,55,.1)','3':'rgba(150,100,10,.1)'};
+const NETSTROKE={'1':'rgba(50,110,220,.3)','2':'rgba(30,160,80,.3)','3':'rgba(200,150,20,.3)'};
+const NETLABEL={'1':'#2a60b0','2':'#1a8040','3':'#906010'};
+
+const canvas=document.getElementById('net');
+const ctx=canvas.getContext('2d');
+
+function showTab(t){
+  ['add','rede','ping','erros'].forEach(id=>{
+    document.getElementById('panel-'+id).style.display=id===t?'block':'none';
+    document.getElementById('tab-'+id).classList.toggle('active',id===t);
+  });
+  if(t==='rede')renderDevList();
+  if(t==='ping')refreshSelects();
+  if(t==='erros')runDiag();
+}
+function updateHint(){
+  const net=document.getElementById('devNet').value;
+  const h=document.getElementById('devHost').value.trim();
+  document.getElementById('ipBadge').textContent='IP: '+NC[net].prefix+'.'+(h||'___');
+}
+function toast(msg,dur=2200){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.style.opacity='1';
+  clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',dur);
+}
+function fakeMac(seed){
+  const h=n=>('0'+(Math.abs(Math.sin(n)*255)|0).toString(16).padStart(2,'0').toUpperCase());
+  return['00','1A',h(seed),h(seed+1),h(seed+2),h(seed+3)].join(':');
+}
+function addDevice(){
+  const type=document.getElementById('devType').value;
+  const name=document.getElementById('devName').value.trim();
+  const net=document.getElementById('devNet').value;
+  const host=document.getElementById('devHost').value.trim();
+  const port=document.getElementById('devPort').value.trim();
+  if(!name){toast('⚠ Informe um nome.');return;}
+  if(!host||isNaN(host)||+host<1||+host>254){toast('⚠ Host inválido (1–254).');return;}
+  const ip=NC[net].prefix+'.'+host;
+  const conflict=devices.find(d=>d.ip===ip);
+  if(conflict){
+    toast('❌ Conflito! IP '+ip+' já usado por '+conflict.name);
+    runDiag();return;
+  }
+  const W=canvas.width||800,H=canvas.height||500;
+  const angle=Math.random()*Math.PI*2,r=80+Math.random()*140;
+  devices.push({id:Date.now()+Math.random(),type,name,net,ip,port,x:W/2+r*Math.cos(angle),y:H/2+r*Math.sin(angle)});
+  document.getElementById('devName').value='';
+  document.getElementById('devHost').value='';
+  document.getElementById('devPort').value='';
+  updateHint();
+  document.getElementById('ehint').style.display='none';
+  render();updateCount();refreshSelects();runDiag();
+  toast('✓ '+name+' adicionado ('+ip+')');
+}
+function deleteDevice(id){
+  const i=devices.findIndex(d=>d.id===id);
+  if(i>=0)devices.splice(i,1);
+  if(selId===id)selId=null;
+  if(pSrc===id)pSrc=null;
+  if(pDst===id)pDst=null;
+  render();updateCount();renderDevList();refreshSelects();runDiag();
+  if(!devices.length)document.getElementById('ehint').style.display='block';
+}
+function clearAll(){
+  if(!confirm('Apagar todos os dispositivos?'))return;
+  devices.length=0;selId=null;pSrc=null;pDst=null;pingPkts=[];
+  render();updateCount();renderDevList();refreshSelects();runDiag();
+  document.getElementById('ehint').style.display='block';
+}
+function updateCount(){
+  document.getElementById('devCount').textContent=devices.length+' dispositivo'+(devices.length!==1?'s':'');
+}
+
+/* ── DIAGNÓSTICO DE ERROS ── */
+function runDiag(){
+  const errs=[];
+  const warns=[];
+  const infos=[];
+
+  // conflito de IP
+  const ipMap={};
+  devices.forEach(d=>{
+    if(!ipMap[d.ip])ipMap[d.ip]=[];
+    ipMap[d.ip].push(d);
+  });
+  Object.entries(ipMap).forEach(([ip,devs])=>{
+    if(devs.length>1){
+      errs.push({title:'❌ Conflito de IP: '+ip,desc:'Dispositivos com mesmo IP: '+devs.map(d=>d.name).join(' e ')+'. Comunicação impossível — ambos ficam offline para a rede.'});
+    }
+  });
+
+  // câmera sem DVR/NVR na mesma rede
+  const cameras=devices.filter(d=>TC[d.type].isCamera);
+  const centrais=devices.filter(d=>TC[d.type].isCentral);
+  cameras.forEach(cam=>{
+    const hasCentral=centrais.some(c=>c.net===cam.net);
+    if(!hasCentral){
+      warns.push({title:'⚠ Câmera sem central: '+cam.name,desc:cam.name+' ('+cam.ip+') está na '+NC[cam.net].name+' mas não há DVR/NVR nessa rede. A câmera grava localmente mas não terá gerenciamento central.'});
+    }
+  });
+
+  // DVR/NVR sem câmeras na mesma rede
+  centrais.forEach(dvr=>{
+    const cams=cameras.filter(c=>c.net===dvr.net);
+    if(cams.length===0){
+      warns.push({title:'⚠ '+dvr.name+' sem câmeras',desc:dvr.name+' ('+dvr.ip+') está na '+NC[dvr.net].name+' mas não há câmeras nessa sub-rede. O DVR ficará sem feeds de vídeo.'});
+    } else {
+      infos.push({title:'✓ '+dvr.name+' gerencia '+cams.length+' câmera'+(cams.length>1?'s':''),desc:'Câmeras: '+cams.map(c=>c.name+' ('+c.ip+')').join(', ')+'.'});
+    }
+  });
+
+  // câmera em rede diferente do DVR (possível mas problemático)
+  cameras.forEach(cam=>{
+    centrais.forEach(dvr=>{
+      if(cam.net!==dvr.net){
+        warns.push({title:'⚠ '+cam.name+' em rede diferente de '+dvr.name,desc:cam.name+' está na '+NC[cam.net].name+' e '+dvr.name+' na '+NC[dvr.net].name+'. Câmeras e DVR devem estar na mesma sub-rede para o stream RTSP funcionar sem roteamento especial.'});
+      }
+    });
+  });
+
+  // controladora de acesso sem leitor biométrico na mesma rede
+  const controllers=devices.filter(d=>TC[d.type].isAccess);
+  const biometrics=devices.filter(d=>TC[d.type].isBio);
+  controllers.forEach(ctrl=>{
+    const hasBio=biometrics.some(b=>b.net===ctrl.net);
+    if(!hasBio && biometrics.length>0){
+      infos.push({title:'ℹ '+ctrl.name+' sem leitor biométrico na rede',desc:'Nenhum leitor biométrico encontrado na mesma sub-rede que '+ctrl.name+'. Leitores em outra rede requerem roteamento configurado.'});
+    }
+  });
+
+  // switch ausente em redes com mais de 2 dispositivos
+  const byNet={};
+  devices.forEach(d=>{if(!byNet[d.net])byNet[d.net]=[];byNet[d.net].push(d);});
+  Object.entries(byNet).forEach(([net,devs])=>{
+    const hasSwitch=devs.some(d=>TC[d.type].isSwitch);
+    if(devs.length>2&&!hasSwitch){
+      warns.push({title:'⚠ Rede '+NC[net].name+' sem switch',desc:'A '+NC[net].name+' tem '+devs.length+' dispositivos mas nenhum switch foi adicionado. Em uma instalação real, todos precisam de um ponto de concentração.'});
+    }
+  });
+
+  // roteador ausente quando há múltiplas redes
+  const nets=new Set(devices.map(d=>d.net));
+  if(nets.size>1){
+    const hasRouter=devices.some(d=>TC[d.type].isRouter);
+    if(!hasRouter){
+      errs.push({title:'❌ Múltiplas redes sem roteador',desc:'Existem dispositivos em '+nets.size+' redes diferentes ('+[...nets].map(n=>NC[n].name).join(', ')+') mas nenhum roteador foi adicionado. Sem roteador, as redes não se comunicam entre si.'});
+    }
+  }
+
+  // IP de gateway conflitante
+  devices.forEach(d=>{
+    const gw=NC[d.net].gw;
+    if(d.ip===gw){
+      errs.push({title:'❌ IP de gateway em uso: '+d.ip,desc:d.name+' está usando o IP '+d.ip+' que é o endereço do gateway padrão da '+NC[d.net].name+'. Isso causará conflito de roteamento.'});
+    }
+  });
+
+  // IP .0 ou .255 (endereços reservados)
+  devices.forEach(d=>{
+    const last=+d.ip.split('.').pop();
+    if(last===0||last===255){
+      errs.push({title:'❌ IP reservado: '+d.ip,desc:d.name+' usa '+d.ip+'. Endereços .0 (rede) e .255 (broadcast) são reservados e não devem ser atribuídos a dispositivos.'});
+    }
+  });
+
+  const total=errs.length+warns.length;
+  const el=document.getElementById('errBadge');
+  const tabEl=document.getElementById('tabErrBadge');
+  const dot=document.getElementById('statusDot');
+  const stxt=document.getElementById('statusTxt');
+
+  if(errs.length>0){
+    el.className='err-badge';el.textContent='⚠ '+total+' problema'+(total>1?'s':'');
+    tabEl.className='tbadge';tabEl.textContent=total;
+    dot.className='dot red';stxt.textContent=errs.length+' erro'+(errs.length>1?'s críticos':'  crítico');
+  } else if(warns.length>0){
+    el.className='err-badge';el.style.background='#2a1800';el.style.color='#e6c040';el.style.borderColor='#4a3000';
+    el.textContent='⚠ '+warns.length+' aviso'+(warns.length>1?'s':'');
+    tabEl.className='tbadge';tabEl.style.background='#2a1800';tabEl.style.color='#e6c040';tabEl.textContent=warns.length;
+    dot.className='dot amber';stxt.textContent=warns.length+' aviso'+(warns.length>1?'s':'');
+  } else {
+    el.className='err-badge ok';el.textContent='✓ Sem erros';el.style.background='';el.style.color='';el.style.borderColor='';
+    tabEl.className='tbadge ok';tabEl.textContent='0';
+    dot.className='dot green';stxt.textContent='Sistema OK';
+  }
+
+  const diagList=document.getElementById('diagList');
+  if(!devices.length){
+    diagList.innerHTML='<div style="font-size:11px;color:#1a3356;text-align:center;padding:14px 0">Adicione dispositivos para iniciar o diagnóstico.</div>';
+    return;
+  }
+  if(errs.length===0&&warns.length===0&&infos.length===0){
+    diagList.innerHTML='<div class="ecard eok"><div class="etitle">✓ Topologia sem problemas</div>Todos os dispositivos estão corretamente configurados na rede.</div>';
+    return;
+  }
+  let html='';
+  errs.forEach(e=>html+=`<div class="ecard ecrit"><div class="etitle">${e.title}</div>${e.desc}</div>`);
+  warns.forEach(w=>html+=`<div class="ecard ewarn"><div class="etitle">${w.title}</div>${w.desc}</div>`);
+  infos.forEach(i=>html+=`<div class="ecard einfo"><div class="etitle">${i.title}</div>${i.desc}</div>`);
+  diagList.innerHTML=html;
+
+  // marcar dispositivos com erro no canvas
+  const conflictIPs=new Set();
+  Object.entries(ipMap).forEach(([ip,devs])=>{if(devs.length>1)conflictIPs.add(ip);});
+  devices.forEach(d=>{
+    d._err=conflictIPs.has(d.ip);
+    d._warn=!d._err&&warns.some(w=>w.title.includes(d.name));
+  });
+  render();
+}
+
+/* ── LISTA DE DISPOSITIVOS ── */
+function renderDevList(){
+  const el=document.getElementById('deviceList');
+  if(!devices.length){el.innerHTML='<div style="font-size:11px;color:#1a3356;text-align:center;padding:14px 0">Nenhum dispositivo cadastrado.</div>';return;}
+  el.innerHTML=devices.map(d=>{
+    const cfg=TC[d.type];
+    const nc=NC[d.net];
+    const cls=d._err?' err':d._warn?' warn':d.id===selId?' sel':d.id===pSrc?' psrc':d.id===pDst?' pdst':'';
+    return`<div class="dcard${cls}" onclick="selectDev(${d.id})">
+      <div class="di" style="background:${cfg.color}22">${cfg.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div class="dn">${d.name}<span class="dbadge n${d.net}">${nc.name}</span></div>
+        <div class="dip">${d.ip}${d.port?' · :'+d.port:''}</div>
+      </div>
+      <span class="ddel" onclick="event.stopPropagation();deleteDevice(${d.id})">✕</span>
+    </div>`;
+  }).join('');
+}
+function selectDev(id){selId=id===selId?null:id;render();renderDevList();}
+
+/* ── PING ── */
+function refreshSelects(){
+  const opts='<option value="">— selecione —</option>'+devices.map(d=>`<option value="${d.id}">${TC[d.type].icon} ${d.name} — ${d.ip}</option>`).join('');
+  document.getElementById('pingSrc').innerHTML=opts;
+  document.getElementById('pingDst').innerHTML=opts;
+}
+function tline(cls,txt){
+  const t=document.getElementById('term');
+  const l=document.createElement('div');l.className='tl '+cls;l.textContent=txt;
+  t.appendChild(l);t.scrollTop=t.scrollHeight;
+}
+function clearTerm(){
+  document.getElementById('term').innerHTML='<div class="tl tw">Terminal limpo.</div>';
+}
+function runPing(){
+  const srcId=+document.getElementById('pingSrc').value;
+  const dstId=+document.getElementById('pingDst').value;
+  if(!srcId||!dstId){toast('Selecione origem e destino.');return;}
+  if(srcId===dstId){toast('Origem e destino são o mesmo.');return;}
+  const src=devices.find(d=>d.id===srcId);
+  const dst=devices.find(d=>d.id===dstId);
+  if(!src||!dst)return;
+  pSrc=srcId;pDst=dstId;render();renderDevList();
+
+  const same=src.net===dst.net;
+  const srcCfg=TC[src.type],dstCfg=TC[dst.type];
+
+  // conflito de IP no destino?
+  const ipMap={};devices.forEach(d=>{if(!ipMap[d.ip])ipMap[d.ip]=[];ipMap[d.ip].push(d);});
+  const dstConflict=ipMap[dst.ip]&&ipMap[dst.ip].length>1;
+
+  // câmera tentando pingar DVR de outra rede
+  const crossDVR=(srcCfg.isCamera&&dstCfg.isCentral&&!same)||(dstCfg.isCamera&&srcCfg.isCentral&&!same);
+
+  tline('tc','');
+  tline('tc','C:\\> ping '+dst.ip+(src.port?' -p '+src.port:''));
+  tline('ts','Origem: '+src.name+' ('+src.ip+') → Destino: '+dst.name+' ('+dst.ip+')');
+  tline('ts','Protocolo: ICMP | Tamanho: 32 bytes');
+
+  if(dstConflict){
+    setTimeout(()=>{
+      tline('tf','');
+      tline('tf','ERRO CRÍTICO: Conflito de IP detectado no destino '+dst.ip+'!');
+      tline('tf','Múltiplos dispositivos respondem ao mesmo endereço — comportamento imprevisível.');
+      tline('tf','Resolva o conflito antes de testar a conectividade.');
+    },400);
+    return;
+  }
+
+  const baseMs=same?4+Math.random()*15:35+Math.random()*90;
+  const ttl=same?128:same?128:111;
+  const hasLoss=!same&&Math.random()>0.55;
+  const replies=[];
+  let step=0;
+
+  function nextReply(){
+    if(step>=4){
+      setTimeout(()=>{
+        const lost=4-replies.length,lostPct=Math.round(lost/4*100);
+        tline('ts','');
+        tline('ts','Estatísticas de ping para '+dst.ip+':');
+        tline('ts','  Pacotes: Enviados=4 | Recebidos='+replies.length+' | Perdidos='+lost+' ('+lostPct+'% perda)');
+        if(replies.length){
+          const times=replies.map(r=>r.t);
+          tline('ts','  Tempo: Min='+Math.min(...times).toFixed(0)+'ms  Max='+Math.max(...times).toFixed(0)+'ms  Média='+( times.reduce((a,b)=>a+b)/times.length).toFixed(0)+'ms');
+        }
+        if(!same){
+          tline('tw','');
+          tline('tw','⚠ Dispositivos em sub-redes diferentes:');
+          tline('tw','  Origem: '+NC[src.net].name+' ('+NC[src.net].prefix+'.0/24)');
+          tline('tw','  Destino: '+NC[dst.net].name+' ('+NC[dst.net].prefix+'.0/24)');
+          const hasRouter=devices.some(d=>TC[d.type].isRouter);
+          if(hasRouter){
+            tline('tw','  Roteador detectado na topologia — comunicação possível via roteamento.');
+          } else {
+            tline('tf','  NENHUM ROTEADOR detectado! Comunicação entre sub-redes impossível.');
+            tline('tf','  Adicione um roteador/firewall para interligar as redes.');
+          }
+        }
+        if(crossDVR){
+          tline('tw','');
+          tline('tw','⚠ Câmera e DVR/NVR em redes diferentes:');
+          tline('tw','  O stream RTSP (porta 554) pode falhar sem configuração de roteamento explícita.');
+        }
+        // contexto do tipo de dispositivo
+        if(dstCfg.isCamera&&same){
+          tline('ts','');tline('ts','ℹ Câmera acessível. Portas típicas: 80 (web), 554 (RTSP), 8080 (HTTP alt).');
+        }
+        if(dstCfg.isCentral&&same){
+          const cams=devices.filter(c=>TC[c.type].isCamera&&c.net===dst.net);
+          tline('ts','');tline('ts','ℹ DVR/NVR acessível. Gerencia '+cams.length+' câmera'+(cams.length!==1?'s':'')+' nessa rede.');
+        }
+        tline('tc','');
+      },300);
+      return;
+    }
+    const jitter=(Math.random()*8-4);
+    const t=Math.max(1,baseMs+jitter);
+    const lost=hasLoss&&step===2;
+    setTimeout(()=>{
+      if(lost){tline('tf','Tempo limite esgotado para '+dst.ip+'.');}
+      else{tline('to','Reply de '+dst.ip+': bytes=32 tempo='+t.toFixed(0)+'ms TTL='+ttl);replies.push({t});}
+      step++;nextReply();
+    },380);
+  }
+  nextReply();
+  startPingAnim(src,dst,same);
+}
+
+function startPingAnim(src,dst,same){
+  if(pingAnim)cancelAnimationFrame(pingAnim);
+  const col=same?'#4cbb7c':'#e6a817';
+  const t0=performance.now();
+  const dur=2400;
+  pingPkts=[{off:0},{off:.5}];
+  function frame(now){
+    const e=(now-t0)/dur;
+    if(e>1.2){pingPkts=[];render();return;}
+    pingPkts=pingPkts.map(p=>({...p,prog:Math.min(Math.max((e-p.off)*2.5,0),1),col}));
+    render();
+    pingAnim=requestAnimationFrame(frame);
+  }
+  pingAnim=requestAnimationFrame(frame);
+}
+
+/* ── RENDER CANVAS ── */
+function resize(){
+  const w=document.getElementById('cw');
+  canvas.width=w.clientWidth;canvas.height=w.clientHeight;
+  render();
+}
+
+function render(){
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  if(!devices.length)return;
+
+  // zonas de rede
+  const byNet={};
+  devices.forEach(d=>{if(!byNet[d.net])byNet[d.net]=[];byNet[d.net].push(d);});
+  Object.entries(byNet).forEach(([net,devs])=>{
+    const xs=devs.map(d=>d.x),ys=devs.map(d=>d.y);
+    const pad=60;
+    const x0=Math.min(...xs)-pad,y0=Math.min(...ys)-pad;
+    const x1=Math.max(...xs)+pad,y1=Math.max(...ys)+pad;
+    ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(x0,y0,x1-x0,y1-y0,12);else ctx.rect(x0,y0,x1-x0,y1-y0);
+    ctx.fillStyle=NETFILL[net];ctx.fill();
+    ctx.strokeStyle=NETSTROKE[net];ctx.lineWidth=1;ctx.stroke();
+    const mx=xs.reduce((a,b)=>a+b)/xs.length;
+    ctx.fillStyle=NETLABEL[net];ctx.font='700 10px Segoe UI,Arial';ctx.textAlign='left';
+    ctx.fillText(NC[net].name+' — '+NC[net].prefix+'.0/24 — GW: '+NC[net].gw,x0+10,y0+16);
+  });
+
+  // links lógicos: DVR→câmeras na mesma rede, ctrl→bio na mesma rede
+  const centrais=devices.filter(d=>TC[d.type].isCentral);
+  const cameras=devices.filter(d=>TC[d.type].isCamera);
+  const ctrls=devices.filter(d=>TC[d.type].isAccess);
+  const bios=devices.filter(d=>TC[d.type].isBio);
+
+  centrais.forEach(dvr=>{
+    cameras.filter(c=>c.net===dvr.net).forEach(cam=>{
+      ctx.beginPath();ctx.moveTo(dvr.x,dvr.y);ctx.lineTo(cam.x,cam.y);
+      ctx.strokeStyle='rgba(142,68,173,.55)';ctx.lineWidth=1.8;ctx.setLineDash([]);ctx.globalAlpha=.7;ctx.stroke();
+      ctx.globalAlpha=1;
+    });
+  });
+  ctrls.forEach(ctrl=>{
+    bios.filter(b=>b.net===ctrl.net).forEach(bio=>{
+      ctx.beginPath();ctx.moveTo(ctrl.x,ctrl.y);ctx.lineTo(bio.x,bio.y);
+      ctx.strokeStyle='rgba(39,174,96,.55)';ctx.lineWidth=1.8;ctx.setLineDash([]);ctx.globalAlpha=.7;ctx.stroke();
+      ctx.globalAlpha=1;
+    });
+  });
+
+  // links gerais
+  for(let i=0;i<devices.length;i++)for(let j=i+1;j<devices.length;j++){
+    const a=devices[i],b=devices[j];
+    const same=a.net===b.net;
+    const isPingLine=(a.id===pSrc&&b.id===pDst)||(a.id===pDst&&b.id===pSrc);
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+    if(isPingLine){ctx.strokeStyle='#e6a817';ctx.lineWidth=2;ctx.setLineDash([]);ctx.globalAlpha=.75;}
+    else if(same){ctx.strokeStyle='#2a5090';ctx.lineWidth=1.2;ctx.setLineDash([]);ctx.globalAlpha=.25;}
+    else{ctx.strokeStyle='#883333';ctx.lineWidth=1;ctx.setLineDash([5,4]);ctx.globalAlpha=.22;}
+    ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+  }
+
+  // pacotes de ping animados
+  pingPkts.forEach(p=>{
+    const s=devices.find(d=>d.id===pSrc),dt=devices.find(d=>d.id===pDst);
+    if(!s||!dt)return;
+    const prog=p.prog||0;
+    const x=s.x+(dt.x-s.x)*prog,y=s.y+(dt.y-s.y)*prog;
+    ctx.beginPath();ctx.arc(x,y,5.5,0,Math.PI*2);
+    ctx.fillStyle=p.col||'#4cbb7c';ctx.globalAlpha=.9;ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.2;ctx.stroke();ctx.globalAlpha=1;
+  });
+
+  // nós
+  devices.forEach(d=>{
+    const cfg=TC[d.type];
+    const isSel=d.id===selId,isSrc=d.id===pSrc,isDst=d.id===pDst;
+    const r=isSel?31:27;
+    if(isSel){ctx.beginPath();ctx.arc(d.x,d.y,r+6,0,Math.PI*2);ctx.fillStyle='rgba(58,123,213,.14)';ctx.fill();}
+    if(isSrc){ctx.beginPath();ctx.arc(d.x,d.y,r+8,0,Math.PI*2);ctx.fillStyle='rgba(230,168,23,.16)';ctx.fill();}
+    if(isDst){ctx.beginPath();ctx.arc(d.x,d.y,r+8,0,Math.PI*2);ctx.fillStyle='rgba(39,174,96,.16)';ctx.fill();}
+    // pulso de erro
+    if(d._err){
+      ctx.beginPath();ctx.arc(d.x,d.y,r+10,0,Math.PI*2);
+      ctx.strokeStyle='rgba(200,40,40,.5)';ctx.lineWidth=2;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+    }
+    ctx.beginPath();ctx.arc(d.x,d.y,r,0,Math.PI*2);
+    ctx.fillStyle=d._err?'#8a1a1a':cfg.color;ctx.fill();
+    ctx.strokeStyle=d._err?'#ff4444':isSel?'#fff':isSrc?'#e6a817':isDst?'#27ae60':'rgba(255,255,255,.2)';
+    ctx.lineWidth=isSel||isSrc||isDst?2.5:1.5;ctx.stroke();
+    ctx.font=(r===31?'17':'15')+'px Segoe UI Emoji';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(cfg.icon,d.x,d.y+1);
+    ctx.font='700 10px Segoe UI,Arial';ctx.fillStyle=d._err?'#f08080':'#c8d8f0';ctx.textBaseline='top';
+    ctx.fillText(d.name,d.x,d.y+r+5);
+    ctx.font='9px Courier New';ctx.fillStyle=d._err?'#cc4444':'#3a6a9a';
+    ctx.fillText(d.ip,d.x,d.y+r+16);
+    ctx.textBaseline='alphabetic';
+  });
+}
+
+/* ── DRAG ── */
+canvas.addEventListener('mousedown',e=>{
+  const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  for(let i=devices.length-1;i>=0;i--){
+    const d=devices[i],dx=mx-d.x,dy=my-d.y;
+    if(dx*dx+dy*dy<=900){drag={id:d.id,ox:mx-d.x,oy:my-d.y};selId=d.id;render();renderDevList();break;}
+  }
+});
+canvas.addEventListener('mousemove',e=>{
+  const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  if(drag){const d=devices.find(d=>d.id===drag.id);if(d){d.x=mx-drag.ox;d.y=my-drag.oy;render();return;}}
+  let found=null;
+  for(let i=devices.length-1;i>=0;i--){const d=devices[i],dx=mx-d.x,dy=my-d.y;if(dx*dx+dy*dy<=900){found=d;break;}}
+  const tip=document.getElementById('tip');
+  if(found){
+    const cfg=TC[found.type],nc=NC[found.net];
+    const cams=TC[found.type].isCentral?devices.filter(c=>TC[c.type].isCamera&&c.net===found.net):[];
+    tip.innerHTML=`<div style="font-size:12px;font-weight:700;color:#c8d8f0;margin-bottom:5px">${cfg.icon} ${found.name}${found._err?'  <span style="color:#f08080;font-size:10px">⚠ ERRO</span>':''}</div>`+
+      `<div class="tr"><span class="tk">Tipo</span><span class="tv">${cfg.label}</span></div>`+
+      `<div class="tr"><span class="tk">IP</span><span class="tv">${found.ip}</span></div>`+
+      `<div class="tr"><span class="tk">Rede</span><span class="tv">${nc.name} (${nc.prefix}.0/24)</span></div>`+
+      `<div class="tr"><span class="tk">Máscara</span><span class="tv">${nc.mask}</span></div>`+
+      `<div class="tr"><span class="tk">Gateway</span><span class="tv">${nc.gw}</span></div>`+
+      `<div class="tr"><span class="tk">MAC</span><span class="tv">${fakeMac(found.id)}</span></div>`+
+      `<div class="tr"><span class="tk">Porta(s)</span><span class="tv">${found.port||cfg.ports}</span></div>`+
+      (cams.length?`<div class="tr"><span class="tk">Câmeras</span><span class="tv">${cams.length} na mesma rede</span></div>`:'');
+    tip.style.display='block';
+    let tx=mx+14,ty=my-10;
+    if(tx+210>canvas.width)tx-=224;
+    if(ty+180>canvas.height)ty-=180;
+    tip.style.left=tx+'px';tip.style.top=ty+'px';
+    canvas.style.cursor='grab';
+  } else {
+    tip.style.display='none';canvas.style.cursor='default';
+  }
+});
+canvas.addEventListener('mouseup',()=>{drag=null;canvas.style.cursor='default';});
+canvas.addEventListener('mouseleave',()=>{drag=null;document.getElementById('tip').style.display='none';});
+
+/* ── EXEMPLO ── */
+function preloadExample(){
+  clearAll();
+  const W=canvas.width||900,H=canvas.height||560;
+  const ex=[
+    // Rede 1 — Sistema de câmeras (192.168.1.x)
+    {type:'router',  name:'FW-BORDA',    net:'1',host:'254',port:'80',   x:.50,y:.10},
+    {type:'switch',  name:'SW-CAMARAS',  net:'1',host:'2',  port:'',    x:.30,y:.22},
+    {type:'dvr',     name:'DVR-01',      net:'1',host:'10', port:'80',  x:.20,y:.38},
+    {type:'camera',  name:'CAM-ENTRADA', net:'1',host:'20', port:'554', x:.10,y:.55},
+    {type:'camera',  name:'CAM-PATIO',   net:'1',host:'21', port:'554', x:.22,y:.68},
+    {type:'camera',  name:'CAM-CORREDOR',net:'1',host:'22', port:'554', x:.36,y:.60},
+    {type:'camera',  name:'CAM-ESTAC',   net:'1',host:'23', port:'554', x:.14,y:.80},
+    // Rede 2 — Controle de acesso (192.168.2.x)
+    {type:'switch',  name:'SW-ACESSO',   net:'2',host:'2',  port:'',    x:.68,y:.22},
+    {type:'access',  name:'CTRL-ACE-01', net:'2',host:'10', port:'9000',x:.60,y:.40},
+    {type:'biometric',name:'BIO-ENTRADA',net:'2',host:'30', port:'9000',x:.52,y:.60},
+    {type:'biometric',name:'BIO-SALA-A', net:'2',host:'31', port:'9000',x:.64,y:.72},
+    {type:'pc',      name:'PC-SEGURANCA',net:'2',host:'50', port:'',    x:.78,y:.55},
+    {type:'server',  name:'SRV-MONIT',   net:'2',host:'100',port:'80',  x:.88,y:.38},
+  ];
+  ex.forEach(e=>{
+    const ip=NC[e.net].prefix+'.'+e.host;
+    if(!devices.find(d=>d.ip===ip))
+      devices.push({id:Date.now()+Math.random(),type:e.type,name:e.name,net:e.net,ip,port:e.port,x:e.x*W,y:e.y*H});
+  });
+  document.getElementById('ehint').style.display='none';
+  render();updateCount();renderDevList();refreshSelects();runDiag();
+  toast('✓ Sistema de segurança carregado. Arraste os nós livremente!',3000);
+}
+
+window.addEventListener('load',()=>{resize();updateHint();runDiag();});
+window.addEventListener('resize',resize);
+</script>
+</body>
+</html>
